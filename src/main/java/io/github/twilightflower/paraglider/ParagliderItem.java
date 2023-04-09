@@ -16,22 +16,20 @@ public class ParagliderItem extends Item {
 	public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer player, EnumHand hand) {
 		ItemStack stack = player.getHeldItem(hand);
 		
-		if(ElenaiDodgeCompat.INSTANCE.canGlide(player)) {
-			if(!world.isRemote) {
-				ParagliderEntity paraglider = new ParagliderEntity(world);
-				
-				paraglider.setPosition(player.posX, player.posY, player.posZ);
-				paraglider.rotationYaw = player.rotationYaw;
-				paraglider.usedHand = hand;
-				
-				world.spawnEntity(paraglider);
-				player.startRiding(paraglider, true);
-				if(player.getRidingEntity() == null) {
-					System.out.println("Mount failed");
-				}
-				
-				paraglider.playSound(SoundEvents.ITEM_ARMOR_EQIIP_ELYTRA, 1, 1);
+		if(ElenaiDodgeCompat.INSTANCE.canGlide(player) && !world.isRemote) {
+			ParagliderEntity paraglider = new ParagliderEntity(world);
+			
+			paraglider.setPosition(player.posX, player.posY, player.posZ);
+			paraglider.rotationYaw = player.rotationYaw;
+			paraglider.usedHand = hand;
+			
+			world.spawnEntity(paraglider);
+			player.startRiding(paraglider, true);
+			if(player.getRidingEntity() == null) {
+				System.out.println("Mount failed");
 			}
+			
+			paraglider.playSound(SoundEvents.ITEM_ARMOR_EQIIP_ELYTRA, 1, 1);
 		}
 		
 		return ActionResult.newResult(EnumActionResult.SUCCESS, stack);

@@ -42,52 +42,52 @@ public class ParagliderEntity extends Entity {
 		
 		if(rider != null && !rider.isDead && !rider.onGround && !onGround && !shouldDismount &&
 				isHoldingGlider(rider) && ElenaiDodgeCompat.INSTANCE.tick(this, rider) && !inWater) {
-			float actualRiderYaw = actualMod(rider.rotationYaw, 360);
-			float actualSelfYaw = actualMod(rotationYaw, 360);
-			
-			float yawDiff = actualRiderYaw - actualSelfYaw;
-			if(yawDiff > 180) {
-				yawDiff -= 360;
-			} else if(yawDiff < -180) {
-				yawDiff += 360;
-			}
-			
-			float absDiff = Math.abs(yawDiff);
-			float diffSign = Math.signum(yawDiff);
-			float targetYawSpeed = diffSign * Config.maxYawV;
-			
-			if(absDiff < 5 && yawMotion < 1) {
-				yawMotion = 0;
-				rotationYaw = rider.rotationYaw;
+			if(motionY > 0) {
+				motionY = Util.towards(motionY, Config.terminalVelocity, Config.upGravity);
+				motionX *= 0.98;
+				motionZ *= 0.98;
 			} else {
-				if(diffSign == Math.signum(yawMotion)) {
-					yawMotion = Util.towards(yawMotion, targetYawSpeed, Config.yawAccel);
+				float yawDiff = Util.angleDiff(rider.rotationYaw, rotationYaw);
+				float absDiff = Math.abs(yawDiff);
+				float diffSign = Math.signum(yawDiff);
+				float targetYawSpeed = diffSign * Config.maxYawV;
+				
+				if(absDiff < Config.yawSnapDist && Math.abs(yawMotion) < Config.yawSnapSpeed) {
+					yawMotion = 0;
+					rotationYaw = rider.rotationYaw;
 				} else {
-					yawMotion = Util.towards(yawMotion, targetYawSpeed, Config.yawDecel);
+					if(diffSign == Math.signum(yawMotion)) {
+						yawMotion = Util.towards(yawMotion, targetYawSpeed, Config.yawAccel);
+					} else {
+						yawMotion = Util.towards(yawMotion, targetYawSpeed, Config.yawDecel);
+					}
+				}
+				
+				rotationYaw += yawMotion;
+				rotationRoll = Util.towards(rotationRoll, yawMotion * Config.tiltFac, Config.tiltSpeed);
+				
+				float fallSpeedFactor = Math.min((float) motionY / Config.terminalVelocity, 1);
+				
+				// minecraft's coordinate system makes no sense
+				// why is sin x and why is it backwards
+				float accel = fallSpeedFactor * Config.horizontalAccel;
+				float radYaw = rotationYaw * DEGREES_TO_RADIANS;
+				float accelX = -MathHelper.sin(radYaw) * accel;
+				float accelZ = MathHelper.cos(radYaw) * accel;
+				
+				motionX += accelX;
+				motionZ += accelZ;
+				
+				motionX *= Config.airResistance;
+				motionZ *= Config.airResistance;
+				
+				if(motionY > Config.terminalVelocity) {
+					motionY = Util.towards(motionY, Config.terminalVelocity, Config.gravity);
+				} else if(motionY < Config.terminalVelocity) {
+					motionY = Util.towards(motionY, Config.terminalVelocity, Config.fallDecel);
 				}
 			}
 			
-			rotationYaw += yawMotion;
-			rotationRoll = Util.towards(rotationRoll, yawMotion * Config.tiltFac, Config.tiltSpeed);
-			
-			float fallSpeedFactor = (float) motionY / -Config.terminalVelocity;
-			
-			// minecraft's coordinate system makes no sense
-			// why is sin x and why is it backwards
-			float accel = fallSpeedFactor * Config.horizontalAccel;
-			float radYaw = rotationYaw * DEGREES_TO_RADIANS;
-			float accelX = -MathHelper.sin(radYaw) * accel;
-			float accelZ = MathHelper.cos(radYaw) * accel;
-			
-			motionX += accelX;
-			motionZ += accelZ;
-			
-			motionX *= Config.airResistance;
-			motionZ *= Config.airResistance;
-			
-			if(motionY > -Config.terminalVelocity) {
-				motionY -= Config.gravity;
-			}
 			
 			move(MoverType.SELF, motionX, motionY, motionZ);
 			
@@ -98,6 +98,8 @@ public class ParagliderEntity extends Entity {
 					living.getHeldItem(usedHand).damageItem(1, living);
 				}
 			}
+		} else if(motionY > 0) {
+			motionY -= Config.upGravity;
 		} else if(!world.isRemote) {
 			// we don't want to run the destroy logic clientside
 			// if the client destroys it but not the server, we get a desync
@@ -116,6 +118,10 @@ public class ParagliderEntity extends Entity {
 	}
 	
 	private boolean isHoldingGlider(Entity passenger) {
+		if(world.isRemote) {
+			return true; // we don't have the hand on client
+		}
+		
 		if(passenger instanceof EntityLivingBase) {
 			EntityLivingBase e = (EntityLivingBase) passenger;
 			return e.getHeldItem(usedHand).getItem() == SimpleParagliderMod.PARAGLIDER;
@@ -138,7 +144,19 @@ public class ParagliderEntity extends Entity {
 			AccessHelper.setRidingEntity(passenger, null);
 			removePassenger(passenger);
 			passenger.setSneaking(false);
+			
+			passenger.motionX = motionX;
+			passenger.motionY = motionY;
+			passenger.motionZ = motionZ;
 		}
+	}
+	
+	@Override
+	protected void addPassenger(Entity passenger) {
+		super.addPassenger(passenger);
+		motionX = passenger.motionX;
+		motionY = passenger.motionY;
+		motionZ = passenger.motionZ;
 	}
 	
 	@Override
@@ -162,21 +180,25 @@ public class ParagliderEntity extends Entity {
 		return false;
 	}
 	
-	private static float actualMod(float num, float modBy) {
-		float javaMod = num % modBy;
-		if(javaMod < 0) {
-			javaMod += modBy;
-		}
-		return javaMod;
-	}
+	
 
 	@Override
 	protected void entityInit() { }
 
+	private static final EnumHand[] HANDS = EnumHand.values();
+	private EnumHand getHand(int hand) {
+		if(hand < HANDS.length) {
+			return HANDS[hand];
+		} else {
+			return EnumHand.MAIN_HAND;
+		}
+	}
+	
 	@Override
 	protected void readEntityFromNBT(NBTTagCompound compound) {
 		yawMotion = compound.getFloat("yaw_motion");
 		partialFeathers = compound.getFloat("partial_feathers");
+		usedHand = getHand(compound.getInteger("hand"));
 		if(compound.hasKey("durability_timer")) {
 			durabilityTimer = compound.getInteger("durability_timer");
 		}
@@ -194,5 +216,6 @@ public class ParagliderEntity extends Entity {
 		compound.setFloat("yaw_motion", yawMotion);
 		compound.setFloat("partial_feathers", partialFeathers);
 		compound.setInteger("durability_timer", durabilityTimer);
+		compound.setInteger("hand", usedHand.ordinal());
 	}
 }

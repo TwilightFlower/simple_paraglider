@@ -21,7 +21,7 @@ import net.minecraftforge.fml.common.registry.EntityRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
-@Mod(modid = SimpleParagliderMod.MODID, name = "Simple Paraglider", version = "1.0.0")
+@Mod(modid = SimpleParagliderMod.MODID, name = "Simple Paraglider", version = "1.0.1")
 public class SimpleParagliderMod {
 	public static final String MODID = "simple_paraglider";
 	public static final Item PARAGLIDER = new ParagliderItem()

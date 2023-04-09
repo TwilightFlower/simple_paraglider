@@ -2,6 +2,7 @@ package io.github.twilightflower.paraglider.client;
 
 import java.util.Map;
 import java.util.WeakHashMap;
+
 import io.github.twilightflower.paraglider.ParagliderEntity;
 import io.github.twilightflower.paraglider.Util;
 import net.minecraft.client.Minecraft;
@@ -64,11 +65,11 @@ public class ClientEvents {
 			heldOffHand = player.getHeldItemOffhand();
 			player.setHeldItem(EnumHand.OFF_HAND, ItemStack.EMPTY);
 			
+			cancelSound = false;
+			
 			// make body only rotate with glider
 			player.renderYawOffset = paraglider.rotationYaw;
 			player.prevRenderYawOffset = paraglider.prevRotationYaw;
-			
-			cancelSound = false;
 			
 			float roll = Util.lerp(paraglider.prevRotationRoll, paraglider.rotationRoll, event.getPartialRenderTick());
 			float yaw = Util.lerp(paraglider.prevRotationYaw, paraglider.rotationYaw, event.getPartialRenderTick());
