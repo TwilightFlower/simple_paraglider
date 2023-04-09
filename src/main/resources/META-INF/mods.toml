@@ -1,0 +1,11 @@
+
+modLoader="javafml"
+loaderVersion="[28,)"
+
+[[mods]]
+modId="simple_paraglider"
+version="${file.jarVersion}"
+displayName="Simple Paraglider"
+authors="TwilightFlower"
+description='''
+'''
