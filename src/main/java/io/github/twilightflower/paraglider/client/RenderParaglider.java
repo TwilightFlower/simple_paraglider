@@ -37,11 +37,13 @@ public class RenderParaglider extends Render<ParagliderEntity> {
 	@Override
 	public void doRender(ParagliderEntity entity, double ex, double ey, double ez, float yaw, float partialTicks) {
 		bindEntityTexture(entity);
+		
 		Entity controller = entity.getControllingPassenger();
 		if(controller != null) {
 			float roll = Util.lerp(entity.prevRotationRoll, entity.rotationRoll, partialTicks);
 			
 			GlStateManager.pushMatrix();
+			GlStateManager.translate(ex, ey, ez);
 			GlStateManager.rotate(-yaw, 0, 1, 0);
 			GlStateManager.translate(0, controller.height, 0);
 			GlStateManager.rotate(roll, 0, 0, 1);

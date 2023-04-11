@@ -75,11 +75,11 @@ public class ClientEvents {
 			float yaw = Util.lerp(paraglider.prevRotationYaw, paraglider.rotationYaw, event.getPartialRenderTick());
 			
 			GlStateManager.pushMatrix();
-			GlStateManager.translate(0, player.height, 0);
+			GlStateManager.translate(event.getX(), event.getY() + player.height, event.getZ());
 			GlStateManager.rotate(-yaw, 0, 1, 0);
 			GlStateManager.rotate(roll, 0, 0, 1);
 			GlStateManager.rotate(yaw, 0, 1, 0);
-			GlStateManager.translate(0, -player.height, 0);
+			GlStateManager.translate(-event.getX(), -event.getY() - player.height, -event.getZ());
 		}
 	}
 	
@@ -99,7 +99,7 @@ public class ClientEvents {
 				model.bipedRightArmwear = new ArmRendererHack(model, model.bipedRightArmwear, () -> model.rightArmPose == GLIDING, true);
 			}
 			
-			if(Minecraft.getMinecraft().player.getRidingEntity() instanceof ParagliderEntity) {
+			if(event.getEntity().getRidingEntity() instanceof ParagliderEntity) {
 				model.leftArmPose = GLIDING;
 				model.rightArmPose = GLIDING;
 			}

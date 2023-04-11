@@ -4,6 +4,7 @@ import io.github.twilightflower.paraglider.client.BakedModelHelper;
 import io.github.twilightflower.paraglider.client.ClientEvents;
 import io.github.twilightflower.paraglider.client.RenderParaglider;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
@@ -21,13 +22,14 @@ import net.minecraftforge.fml.common.registry.EntityRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
-@Mod(modid = SimpleParagliderMod.MODID, name = "Simple Paraglider", version = "1.0.1")
+@Mod(modid = SimpleParagliderMod.MODID, name = "Simple Paraglider", version = "1.0.2")
 public class SimpleParagliderMod {
 	public static final String MODID = "simple_paraglider";
 	public static final Item PARAGLIDER = new ParagliderItem()
 			.setTranslationKey("simple_paraglider.paraglider")
 			.setMaxDamage(1000)
-			.setMaxStackSize(1);
+			.setMaxStackSize(1)
+			.setCreativeTab(CreativeTabs.TOOLS);
 	
 	public static boolean isClient;
 	

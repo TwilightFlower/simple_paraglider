@@ -3,6 +3,7 @@ package io.github.twilightflower.paraglider;
 import java.io.File;
 
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.fml.common.Loader;
 
 public class Config {
 	public static float maxYawV;
@@ -61,10 +62,11 @@ public class Config {
 		cooldownTime = cfg.getInt("cooldownTime", "item", 20, 0, 10000, "Cooldown time between closing and being able to re-open the glider, in ticks.");
 		durabilityRate = cfg.getInt("durabilityRate", "item", 20, 0, Integer.MAX_VALUE, "Time between durability being removed from the item while gliding, in ticks.");
 		
-		elenaiDodgeCompat = cfg.getBoolean("elenaiDodgeCompat", "elenaiDodge", SimpleParagliderMod.isClient, "Enable Elenai Dodge 2 compatibility.\n"
+		elenaiDodgeCompat = cfg.getBoolean("elenaiDodgeCompat", "elenaiDodge", SimpleParagliderMod.isClient || Loader.isModLoaded("universaltweaks"), "Enable Elenai Dodge 2 compatibility.\n"
 				+ "This disables gliding while out of feathers, and makes gliding consume feathers.\n"
 				+ "Note: As of the release of this mod, Elenai Dodge 2 has an issue in its API on dedicated servers, causing a crash.\n"
-				+ "Therefore, this defaults to false on dedicated servers for now.\n"
+				+ "This issue is fixed in the mod Universal Tweaks, starting at version 1.6.0."
+				+ "Therefore, this defaults to false on dedicated servers without Universal Tweaks.\n"
 				+ "See https://github.com/ElenaiDev/ElenaiDodge2.0/issues/83 for more information.");
 		featherRate = cfg.getFloat("featherRate", "elenaiDodge", 0.05f, 0, 10000, "Rate to consume feathers while gliding, in half-feathers per tick.");
 		

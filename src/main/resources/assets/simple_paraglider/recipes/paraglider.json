@@ -1,0 +1,19 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": [
+		"LLL",
+		"SLS",
+		"LLL"
+	],
+	"key": {
+		"L": {
+			"item": "minecraft:leather"
+		},
+		"S": {
+			"item": "minecraft:stick"
+		}
+	},
+	"result": {
+		"item": "simple_paraglider:paraglider"
+	}
+}
