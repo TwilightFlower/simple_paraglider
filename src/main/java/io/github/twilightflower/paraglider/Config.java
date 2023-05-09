@@ -32,6 +32,8 @@ public class Config {
 	
 	public static float tiltFac;
 	
+	public static boolean attemptCustomArmorArmPose;
+	
 	public static void load(File file) {
 		Configuration cfg = new Configuration(file);
 		
@@ -58,6 +60,8 @@ public class Config {
 		maxTilt = cfg.getFloat("maxTilt", "visual", 20, 0, 180, "Maximum amount the glider can tilt to the side, in degrees. Visual only.");
 		maxHeadTurn = cfg.getFloat("maxHeadTurn", "visual", 100, 0, 180, "Maximum amount the player's head can appear to turn away from forward in third person.\n"
 				+ "Visual only, does not affect first-person.");
+		attemptCustomArmorArmPose = cfg.getBoolean("attemptCustomArmorArmPose", "visual", true, "Attempt to make other mods' custom armor models use the correct arm pose.\n"
+				+ "This code is somewhat fragile -- if you're getting crashes when rendering players in third person, try disabling this.");
 		
 		cooldownTime = cfg.getInt("cooldownTime", "item", 20, 0, 10000, "Cooldown time between closing and being able to re-open the glider, in ticks.");
 		durabilityRate = cfg.getInt("durabilityRate", "item", 20, 0, Integer.MAX_VALUE, "Time between durability being removed from the item while gliding, in ticks.");

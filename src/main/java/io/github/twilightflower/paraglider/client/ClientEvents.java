@@ -6,12 +6,17 @@ import java.util.WeakHashMap;
 import io.github.twilightflower.paraglider.ParagliderEntity;
 import io.github.twilightflower.paraglider.Util;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelPlayer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.RenderPlayer;
+import net.minecraft.client.renderer.entity.layers.LayerBipedArmor;
+import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
 import net.minecraftforge.client.GuiIngameForge;
@@ -26,7 +31,9 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class ClientEvents {
 	private static final ModelBiped.ArmPose GLIDING = EnumHelper.addEnum(ModelBiped.ArmPose.class, "GLIDING", new Class[0]);
-	private static final Map<RenderPlayer, Void> INJECTED_SET = new WeakHashMap<>();
+	private static final Map<RenderPlayer, LayerBipedArmor> ARMOR_MAP = new WeakHashMap<>();
+	private static final Map<ModelBase, Void> ARMOR_MODEL_SET = new WeakHashMap<>();
+	private static final EntityEquipmentSlot[] ARMOR_SLOTS = {EntityEquipmentSlot.FEET, EntityEquipmentSlot.CHEST, EntityEquipmentSlot.LEGS, EntityEquipmentSlot.HEAD};
 	
 	@SubscribeEvent
 	public void cancelHandRender(RenderHandEvent event) {
@@ -88,15 +95,34 @@ public class ClientEvents {
 		if(event.getRenderer() instanceof RenderPlayer) {
 			RenderPlayer render = (RenderPlayer) event.getRenderer();
 			ModelPlayer model = render.getMainModel();
+			AbstractClientPlayer player = (AbstractClientPlayer) event.getEntity();
 			
-			if(!INJECTED_SET.containsKey(render)) {
-				INJECTED_SET.put(render, null);
-				
-				model.bipedLeftArm = new ArmRendererHack(model, model.bipedLeftArm, () -> model.leftArmPose == GLIDING, false);
+			if(!ARMOR_MAP.containsKey(render)) {
+				hackArms(model);
 				model.bipedLeftArmwear = new ArmRendererHack(model, model.bipedLeftArmwear, () -> model.leftArmPose == GLIDING, false);
-				
-				model.bipedRightArm = new ArmRendererHack(model, model.bipedRightArm, () -> model.rightArmPose == GLIDING, true);
 				model.bipedRightArmwear = new ArmRendererHack(model, model.bipedRightArmwear, () -> model.rightArmPose == GLIDING, true);
+				
+				for(LayerRenderer<?> layer : ClientAccessHelper.getLayers(render)) {
+					if(layer instanceof LayerBipedArmor) {
+						ARMOR_MAP.put(render, (LayerBipedArmor) layer);
+						break;
+					}
+				}
+			}
+			
+			LayerBipedArmor armorLayer = ARMOR_MAP.get(render);
+			if(armorLayer != null) {
+				
+				for(EntityEquipmentSlot slot : ARMOR_SLOTS) {
+					ModelBase armorModel = ClientAccessHelper.getArmorModelHook(armorLayer, player, player.getItemStackFromSlot(slot), slot, armorLayer.getModelFromSlot(slot));
+					if(!ARMOR_MODEL_SET.containsKey(armorModel)) {
+						ARMOR_MODEL_SET.put(armorModel, null);
+						
+						if(armorModel instanceof ModelBiped) {
+							hackArms((ModelBiped) armorModel);
+						}
+					}
+				}
 			}
 			
 			if(event.getEntity().getRidingEntity() instanceof ParagliderEntity) {
@@ -104,6 +130,11 @@ public class ClientEvents {
 				model.rightArmPose = GLIDING;
 			}
 		}
+	}
+	
+	private void hackArms(ModelBiped model) {
+		model.bipedLeftArm = new ArmRendererHack(model, model.bipedLeftArm, () -> model.leftArmPose == GLIDING, false);
+		model.bipedRightArm = new ArmRendererHack(model, model.bipedRightArm, () -> model.rightArmPose == GLIDING, true);
 	}
 	
 	@SubscribeEvent

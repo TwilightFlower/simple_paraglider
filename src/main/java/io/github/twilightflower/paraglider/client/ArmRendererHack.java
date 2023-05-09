@@ -48,6 +48,40 @@ public class ArmRendererHack extends ModelRenderer {
 		base.renderWithRotation(scale);
 	}
 	
+	@Override
+	public void addChild(ModelRenderer child) {
+		base.addChild(child);
+	}
+	
+	@Override
+	public ModelRenderer addBox(String partName, float offX, float offY, float offZ, int width, int height, int depth) {
+		base.addBox(partName, offX, offY, offZ, width, height, depth);
+		return this;
+	}
+	
+	@Override
+	public ModelRenderer addBox(float offX, float offY, float offZ, int width, int height, int depth) {
+		base.addBox(offX, offY, offZ, width, height, depth);
+		return this;
+	}
+	
+	@Override
+	public ModelRenderer addBox(float offX, float offY, float offZ, int width, int height, int depth, boolean mirrored) {
+		base.addBox(offX, offY, offZ, width, height, depth, mirrored);
+		return this;
+	}
+	
+	@Override
+	public void addBox(float offX, float offY, float offZ, int width, int height, int depth, float scaleFactor) {
+		base.addBox(offX, offY, offZ, width, height, depth, scaleFactor);
+	}
+	
+	@Override
+	public void postRender(float scale) {
+		base.postRender(scale);
+		copy(base, this);
+	}
+	
 	private void apply() {
 		if(condition.getAsBoolean()) {
 			base.rotateAngleX = X_ROTATION;
